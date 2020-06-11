@@ -1,61 +1,95 @@
 # code-gen-library
 code-gen-library for Python
 
-## import package example
+![alt text](https://github.com/umutboz/code-gen-lib/blob/master/code_gen_diagram.png?raw=true)
 
+
+## code-gen-lib import package
 
 ```python
-from httpOperation import HttpOperation
+from lib.enums import MUSTACHE
+from templateStreaming import TemplateStreaming
+from lib.templateFile import TemplateFile
+from lib.templateModule import TemplateModule
 ```
 
 ## using example
 ```python
-url = "https://petstore.swagger.io/v2/swagger.json"
-op = HttpOperation()
-print(op.fetch(url=url))
-
-
-## or using example
-url = "https://petstore.swagger.io/v2/swagger.json"
-op = HttpOperation(url=url)
-print(op.fetch())
-
-
-## close log 
-from environment import Environment
-Environment.Shared().online()
-
-##on terminal excute
-python lib/test_http.py
-
-#builder with json parsing
-op = HttpOperation()
-jsonData = op.request(url=url).jsonParse()
-
-op3 = HttpOperation()
-responseString = op3.fetch(url=url)
+code_gen_lib_example.py
 ```
 
-
-## python3 example
-
+## code-gen-lib generation from json file
 ```python
-from httpOperation3 import HttpOperation3
+config_json_example.py
+
+## with folder
+ config_json_with_template_folder_example.py
 ```
 
+## code-gen-lib generation programming example
+You should add your module containing your folder pathname to the 'modules' path. You can add mustache files and template folder/files in your module path
 ```python
-url = "https://petstore.swagger.io/v2/swagger.json"
-op = HttpOperation3()
-print(op.fetch(url=url))
+from lib.enums import MUSTACHE
+from templateStreaming import TemplateStreaming
+from lib.templateFile import TemplateFile
+from lib.templateModule import TemplateModule
+
+fileName = "test.swift"
+
+testManagerClassTF = TemplateFile(
+    name="learning_class_mustache",
+    dict={"service_name": "OneframeMobile", "request_func": MUSTACHE.PARENT},
+    output_file="Manager.swift"
+)
+testGetRequestFuncTF = TemplateFile(
+    name="request_get_func_mustache",
+    dict={"result_model_name": "String"},
+    output_file=None,
+    is_child_template=True,
+    parent_mustache="request_func"
+)
+testPostRequestFuncTF = TemplateFile(
+    name="request_post_func_mustache",
+    dict={"result_model_name": "UserModel"},
+    output_file=None,
+    is_child_template=True,
+    parent_mustache="request_func"
+)
+
+testModule = TemplateModule(
+    name="networking-swagger-swift",
+    templates_files=[testManagerClassTF, testGetRequestFuncTF, testPostRequestFuncTF]
+)
+
+tStreaming = TemplateStreaming(
+    templateModule=testModule
+)
+tStreaming.execute()
 ```
 
-
+## code-gen-lib generation programming example with your json file
 ```python
-op4 = HttpOperation3(url=url)
-print(op4.fetch())
+import os
+import sys
 
-op5 = HttpOperation3()
-print(op5.fetch(url=url))
+from lib.parser import Parser
+# Own modules
+from templateStreaming import TemplateStreaming
 
-print(jsonData["swagger"])
+pathname = os.path.dirname(sys.argv[0])
+# current path
+json_file_name = "sample_config_with_template_folder.json"
+json_file_path = pathname + "/" + json_file_name
+
+sampleJsonModule = Parser.jsonToTemplateModule(json_file=json_file_path)
+sampleJsonModule.outputDirectory = "oneframe-api-ios"
+sampleJsonModule.isAppendOutputPath = True
+
+print(sampleJsonModule.getOutputDirectoryPath())
+
+tStreaming = TemplateStreaming(
+    template_module=sampleJsonModule,
+    enable_log=False,
+)
+tStreaming.execute()
 ```
